@@ -37,4 +37,27 @@ describe('PessoasPage', () => {
     );
     expect(excluir).toHaveBeenCalledWith('pessoa-1');
   });
+
+  it('mantem campos preenchidos quando a API rejeita a pessoa', async () => {
+    const criar = vi.fn().mockResolvedValue(false);
+    mockedUsePessoas.mockReturnValue({
+      pessoas: [],
+      loading: false,
+      saving: false,
+      error: 'Nome invalido.',
+      success: null,
+      carregar: vi.fn(),
+      criar,
+      excluir: vi.fn(),
+    });
+
+    render(<PessoasPage />);
+    await userEvent.type(screen.getByLabelText('Nome'), 'A');
+    await userEvent.type(screen.getByLabelText('Idade'), '30');
+    await userEvent.click(screen.getByRole('button', { name: /salvar/i }));
+
+    expect(criar).toHaveBeenCalledWith({ nome: 'A', idade: 30 });
+    expect(screen.getByLabelText('Nome')).toHaveValue('A');
+    expect(screen.getByLabelText('Idade')).toHaveValue(30);
+  });
 });

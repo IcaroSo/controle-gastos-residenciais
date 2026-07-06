@@ -12,9 +12,12 @@ export function PessoasPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    await criar({ nome, idade: Number(idade) });
-    setNome('');
-    setIdade('');
+    const criada = await criar({ nome, idade: Number(idade) });
+
+    if (criada) {
+      setNome('');
+      setIdade('');
+    }
   }
 
   async function handleExcluir(id: string, nomePessoa: string) {

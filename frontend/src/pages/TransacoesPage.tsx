@@ -43,16 +43,18 @@ export function TransacoesPage() {
       return;
     }
 
-    await criar({
+    const criada = await criar({
       pessoaId,
       descricao,
       valor: valorNumerico,
       tipo,
     });
 
-    setDescricao('');
-    setValor('');
-    setTipo('Despesa');
+    if (criada) {
+      setDescricao('');
+      setValor('');
+      setTipo('Despesa');
+    }
   }
 
   return (

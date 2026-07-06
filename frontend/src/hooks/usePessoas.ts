@@ -24,7 +24,7 @@ export function usePessoas() {
   }, []);
 
   const criar = useCallback(
-    async (payload: CriarPessoaRequest) => {
+    async (payload: CriarPessoaRequest): Promise<boolean> => {
       setSaving(true);
       setError(null);
       setSuccess(null);
@@ -33,8 +33,10 @@ export function usePessoas() {
         await api.criarPessoa(payload);
         setSuccess('Pessoa cadastrada.');
         await carregar();
+        return true;
       } catch (err) {
         setError(getErrorMessage(err));
+        return false;
       } finally {
         setSaving(false);
       }

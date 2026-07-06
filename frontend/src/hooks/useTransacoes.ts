@@ -30,7 +30,7 @@ export function useTransacoes() {
   }, []);
 
   const criar = useCallback(
-    async (payload: CriarTransacaoRequest) => {
+    async (payload: CriarTransacaoRequest): Promise<boolean> => {
       setSaving(true);
       setError(null);
       setSuccess(null);
@@ -39,8 +39,10 @@ export function useTransacoes() {
         await api.criarTransacao(payload);
         setSuccess('Transacao cadastrada.');
         await carregar();
+        return true;
       } catch (err) {
         setError(getErrorMessage(err));
+        return false;
       } finally {
         setSaving(false);
       }
