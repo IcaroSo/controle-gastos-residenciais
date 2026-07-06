@@ -45,8 +45,8 @@ describe('TransacoesPage', () => {
     });
 
     render(<TransacoesPage />);
-    await userEvent.type(screen.getByLabelText('Descricao'), 'Mercado');
-    await userEvent.type(screen.getByLabelText('Valor'), '12,34');
+    await userEvent.type(screen.getByLabelText('Descrição'), 'Mercado');
+    await userEvent.type(screen.getByLabelText('Valor'), '1234');
     await userEvent.click(screen.getByLabelText('Receita'));
     await userEvent.click(screen.getByRole('button', { name: /salvar/i }));
 
@@ -56,8 +56,34 @@ describe('TransacoesPage', () => {
       valor: 12.34,
       tipo: 'Receita',
     });
-    expect(screen.getByLabelText('Descricao')).toHaveValue('Mercado');
+    expect(screen.getByLabelText('Descrição')).toHaveValue('Mercado');
     expect(screen.getByLabelText('Valor')).toHaveValue('12,34');
     expect(screen.getByLabelText('Receita')).toBeChecked();
+  });
+  it('formata o valor com separador de milhar enquanto digita', async () => {
+    const criar = vi.fn().mockResolvedValue(false);
+    mockedUseTransacoes.mockReturnValue({
+      pessoas: [{ id: 'pessoa-1', nome: 'Ana', idade: 18 }],
+      transacoes: [],
+      loading: false,
+      saving: false,
+      error: null,
+      success: null,
+      carregar: vi.fn(),
+      criar,
+    });
+
+    render(<TransacoesPage />);
+    await userEvent.type(screen.getByLabelText('Descrição'), 'Aluguel');
+    await userEvent.type(screen.getByLabelText('Valor'), '123456');
+    await userEvent.click(screen.getByRole('button', { name: /salvar/i }));
+
+    expect(screen.getByLabelText('Valor')).toHaveValue('1.234,56');
+    expect(criar).toHaveBeenCalledWith({
+      pessoaId: 'pessoa-1',
+      descricao: 'Aluguel',
+      valor: 1234.56,
+      tipo: 'Despesa',
+    });
   });
 });

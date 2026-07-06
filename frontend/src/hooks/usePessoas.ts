@@ -45,17 +45,19 @@ export function usePessoas() {
   );
 
   const excluir = useCallback(
-    async (id: string) => {
+    async (id: string): Promise<boolean> => {
       setSaving(true);
       setError(null);
       setSuccess(null);
 
       try {
         await api.excluirPessoa(id);
-        setSuccess('Pessoa excluida.');
+        setSuccess('Pessoa excluída.');
         await carregar();
+        return true;
       } catch (err) {
         setError(getErrorMessage(err));
+        return false;
       } finally {
         setSaving(false);
       }

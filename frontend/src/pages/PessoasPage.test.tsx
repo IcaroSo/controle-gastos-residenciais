@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { usePessoas } from '../hooks/usePessoas';
@@ -15,9 +15,8 @@ describe('PessoasPage', () => {
     vi.restoreAllMocks();
   });
 
-  it('confirma exclusao informando cascade antes de chamar a API', async () => {
-    const excluir = vi.fn().mockResolvedValue(undefined);
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('confirma exclusao em modal informando cascade antes de chamar a API', async () => {
+    const excluir = vi.fn().mockResolvedValue(true);
     mockedUsePessoas.mockReturnValue({
       pessoas: [{ id: 'pessoa-1', nome: 'Maria', idade: 30 }],
       loading: false,
@@ -32,10 +31,37 @@ describe('PessoasPage', () => {
     render(<PessoasPage />);
     await userEvent.click(screen.getByTitle('Excluir Maria'));
 
-    expect(window.confirm).toHaveBeenCalledWith(
-      'Excluir Maria? Todas as transacoes vinculadas tambem serao removidas.',
-    );
+    expect(screen.getByRole('dialog', { name: 'Excluir pessoa' })).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog', { name: 'Excluir pessoa' });
+    expect(within(dialog).getByText('Maria')).toBeInTheDocument();
+    expect(
+      screen.getByText('Ao confirmar, esta pessoa e todas as transações vinculadas a ela serão removidas.'),
+    ).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Excluir pessoa' }));
+
     expect(excluir).toHaveBeenCalledWith('pessoa-1');
+  });
+
+  it('nao exclui pessoa quando o modal e cancelado', async () => {
+    const excluir = vi.fn().mockResolvedValue(true);
+    mockedUsePessoas.mockReturnValue({
+      pessoas: [{ id: 'pessoa-1', nome: 'Maria', idade: 30 }],
+      loading: false,
+      saving: false,
+      error: null,
+      success: null,
+      carregar: vi.fn(),
+      criar: vi.fn(),
+      excluir,
+    });
+
+    render(<PessoasPage />);
+    await userEvent.click(screen.getByTitle('Excluir Maria'));
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    expect(excluir).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog', { name: 'Excluir pessoa' })).not.toBeInTheDocument();
   });
 
   it('mantem campos preenchidos quando a API rejeita a pessoa', async () => {
@@ -61,3 +87,4 @@ describe('PessoasPage', () => {
     expect(screen.getByLabelText('Idade')).toHaveValue(30);
   });
 });
+
